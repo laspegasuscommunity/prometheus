@@ -1,0 +1,29 @@
+version: "3.8"
+
+services:
+  #Это конфигурация Docker Compose для запуска системы сбора метрик Prometheus.
+  prometheus:
+    container_name: prometheus
+    deploy:
+      restart_policy:
+        condition: always
+        delay: 5s
+    env_file: prometheus.env
+    image: prom/prometheus:latest
+    volumes:
+      - "./prometheus:/etc/prometheus"
+    labels:
+      com.centurylinklabs.watchtower.enable: "true"
+      traefik.enable: "true"
+      traefik.http.routers.prometheus.entrypoints: "websecure"
+      traefik.http.routers.prometheus.rule: "Host(`metrics.${DOMAIN}`)"
+      traefik.http.routers.prometheus.service: "prometheus"
+      traefik.http.routers.prometheus.tls.certresolver: "letsencrypt"
+      traefik.http.services.prometheus.loadbalancer.server.port: "9090"
+    expose:
+      - 9090
+
+networks:
+  default:
+    external: true
+    name: $NETWORK
